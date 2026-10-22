@@ -15,21 +15,45 @@ namespace rmcgirr83\hidecopyright;
 class ext extends \phpbb\extension\base
 {
 	/**
-	 * Enable extension if phpBB version requirement is met
+	 * Check whether the extension can be enabled.
+	 * The current phpBB and PHP version should meet or
+	 * exceed the minimum version required by this extension:
 	 *
-	 * @return bool
+	 * @return bool|array
 	 * @access public
 	 */
 	public function is_enableable()
 	{
-		$enableable = phpbb_version_compare(PHPBB_VERSION, '3.3', '>=');
+		$enableable = $this->check_phpbb_version() && $this->check_php_version();
+
 		if (!$enableable)
 		{
-			$user = $this->container->get('user');
-			$user->add_lang_ext('rmcgirr83/hidecopyright', 'common');
-			trigger_error($user->lang('HIDECOPYRIGHT_REQUIRE_3.2'), E_USER_WARNING);
+			$language = $this->container->get('language');
+			$language->add_lang('hidecopyright_install', 'rmcgirr83/hidecopyright');
+
+			return $language->lang('HIDECOPYRIGHT_NOT_ENABLEABLE');
 		}
 
-		return true;
+		return $enableable;
+	}
+
+	/**
+	 * Require phpBB 3.3.19 due to several security fixes in the phpBB software.
+	 *
+	 * @return bool
+	 */
+	protected function check_phpbb_version()
+	{
+		return phpbb_version_compare(PHPBB_VERSION, '3.3.19', '>=');
+	}
+
+	/**
+	 * Requires PHP 8.3.36 due to security fixes.
+	 *
+	 * @return bool
+	 */
+	protected function check_php_version()
+	{
+		return PHP_VERSION_ID >= 80336;
 	}
 }
